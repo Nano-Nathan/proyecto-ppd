@@ -1,0 +1,42 @@
+# Ignorar archivos compilados
+*.o
+*.out
+
+# Ignorar archivos generados por el compilador
+*.exe
+*.dSYM/
+
+# Ignorar archivos de respaldo
+*~
+
+# Ignorar archivos de dependencias generados por el compilador
+*.d
+
+# Ignorar archivos de configuración específicos del sistema
+Makefile.in
+Makefile.am
+
+# Ignorar archivos de bibliotecas
+lib/
+
+# Ignorar archivos de documentación generados
+doc/
+
+# Ignorar archivos de registros
+logs/
+
+# Ignorar archivos de salida o resultados
+result/
+
+# Ignorar archivos de pruebas
+test/
+
+# Ignorar archivos de editor
+.vscode/
+*.swp
+*.swo
+
+# Ignorar archivos generados por herramientas de análisis de código
+*.gcov
+*.gcno
+*.gcda
