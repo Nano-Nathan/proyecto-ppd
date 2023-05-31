@@ -12,7 +12,7 @@ do
   # Execute task 1
   echo "Starting 200 300 400"
   mpiexec -n 7 ./mainParallel ${matriz_1[$i]} ${matriz_2[$i]} ${matriz_3[$i]}
-  echo "Task 1 completed."
+  echo "Task ${i} completed."
 
   # Wait for task 1 to finish before starting task 2
   echo "Waiting for task to finish..."

@@ -242,33 +242,33 @@ int main(int argc, char *argv[])
     tiempo = (end_mpi.tv_sec - start_mpi.tv_sec) + (end_mpi.tv_usec - start_mpi.tv_usec) / 1000000.0;
     printf("Tiempo de ejecucion: %f ms\n", tiempo);
     // mostramos las matrices originales y el resultado
-    printf("Matriz 1:\n");
-    for (i = 0; i < filas; i++)
-    {
-      for (j = 0; j < columnas; j++)
-      {
-        printf("%d ", matriz_1[i][j]);
-      }
-      printf("\n");
-    }
-    printf("Matriz 2:\n");
-    for (i = 0; i < columnas; i++)
-    {
-      for (j = 0; j < filas2da; j++)
-      {
-        printf("%d ", matriz_2[i][j]);
-      }
-      printf("\n");
-    }
-    printf("Matriz resultado:\n");
-    for (i = 0; i < filas; i++)
-    {
-      for (j = 0; j < filas2da; j++)
-      {
-        printf("%d ", resultado[i][j]);
-      }
-      printf("\n");
-    }
+    // printf("Matriz 1:\n");
+    // for (i = 0; i < filas; i++)
+    // {
+    //   for (j = 0; j < columnas; j++)
+    //   {
+    //     printf("%d ", matriz_1[i][j]);
+    //   }
+    //   printf("\n");
+    // }
+    // printf("Matriz 2:\n");
+    // for (i = 0; i < columnas; i++)
+    // {
+    //   for (j = 0; j < filas2da; j++)
+    //   {
+    //     printf("%d ", matriz_2[i][j]);
+    //   }
+    //   printf("\n");
+    // }
+    // printf("Matriz resultado:\n");
+    // for (i = 0; i < filas; i++)
+    // {
+    //   for (j = 0; j < filas2da; j++)
+    //   {
+    //     printf("%d ", resultado[i][j]);
+    //   }
+    //   printf("\n");
+    // }
   }
 
   MPI_Finalize();
