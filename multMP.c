@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
       // MPI_Send(&matriz_1[filas_asignadas][0], filas_por_proceso * columnas, MPI_INT, i, 0, MPI_COMM_WORLD);
       for (j = 0; j < filas_actual; j++)
       {
-        MPI_Irecv(&resultado[filas_asignadas + j][0], filas2da, MPI_INT, i , j, MPI_COMM_WORLD, &request[filas_asignadas + j - filas_por_proceso]);
+        MPI_Irecv(&resultado[filas_asignadas + j][0], filas2da, MPI_INT, i, j, MPI_COMM_WORLD, &request[filas_asignadas + j - filas_por_proceso]);
       }
       filas_asignadas += filas_actual;
     }
@@ -271,13 +271,15 @@ int main(int argc, char *argv[])
     // }
   }
 
+  if (rank == 0)
+  {
+    // guardamos un archivo con los tiempos de ejecucion y los tamannos de las matrices
+    FILE *fp;
+    fp = fopen("tiemposParalelos.txt", "a");
+    fprintf(fp, "%d %d %d %f\n", filas, columnas, filas2da, tiempo);
+    fclose(fp);
+  }
+
   MPI_Finalize();
-
-  // guardamos un archivo con los tiempos de ejecucion y los tamannos de las matrices
-  FILE *fp;
-  fp = fopen("tiemposParalelos.txt", "a");
-  fprintf(fp, "%d %d %d %f\n", filas, columnas, filas2da, tiempo);
-  fclose(fp);
-
   return 0;
 }
