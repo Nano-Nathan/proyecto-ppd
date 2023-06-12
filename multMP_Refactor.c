@@ -10,6 +10,9 @@ int main(int argc, char *argv[])
 {
     int i, j, k;
     int rank, size;
+    // Inicializamos variables de tiempo
+    double tiempo_creation, tiempo_comm, tiempo_calc, start_creation, end_creation, start_calculo, end_calculo, start_comm, end_comm;
+    double carga_proceso[10];
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -22,14 +25,12 @@ int main(int argc, char *argv[])
     int columnas = atoi(argv[2]);
     int filas2da = atoi(argv[3]);
 
-    // Inicializamos variables de tiempo
-    double tiempo;
-    struct timeval start_mpi, end_mpi;
-
     // Inicializamos variables de matrices
     int **matriz_1;
     int **matriz_2;
     int **resultado;
+    start_creation = MPI_Wtime();
+    carga_proceso[0] = MPI_Wtime();
 
     // Reservamos espacio de memoria para matriz 2
     matriz_2 = (int **)malloc(columnas * sizeof(int *));
@@ -77,13 +78,19 @@ int main(int argc, char *argv[])
             }
         }
 
+        end_creation = MPI_Wtime();
+        tiempo_creation = end_creation - start_creation;
+        carga_proceso[1] = MPI_Wtime();
+
         // calculamos el tiempo de ejecucion
-        gettimeofday(&start_mpi, NULL); // usamos MPI_Wtime?
+        start_calculo = MPI_Wtime();
 
         // Guarda el índice de la última fila asignada (El proceso 0 se queda con las primeras)
         filas_asignadas = filas_por_proceso;
         count_filas[0] = filas_por_proceso;
 
+        start_comm = MPI_Wtime();
+        carga_proceso[2] = MPI_Wtime();
         // Envía las filas a cada proceso
         for (i = 1; i < size; i++)
         {
@@ -108,9 +115,13 @@ int main(int argc, char *argv[])
                 MPI_Send(&matriz_1[filas_asignadas + j][0], columnas, MPI_INT, i, j, MPI_COMM_WORLD);
             }
 
+            end_comm = MPI_Wtime();
+            tiempo_comm += end_comm - start_comm;
             // Se aumenta el índice de las filas asignadas
             filas_asignadas += filas_actual;
         }
+
+        carga_proceso[3] = MPI_Wtime();
     }
     else
     {
@@ -122,17 +133,27 @@ int main(int argc, char *argv[])
             matriz_1[i] = (int *)malloc(columnas * sizeof(int));
             resultado[i] = (int *)malloc(filas2da * sizeof(int));
         }
+        carga_proceso[1] = MPI_Wtime();
 
+        carga_proceso[2] = MPI_Wtime();
         // Los demas procesos reciben su parte de la matriz 1
         for (j = 0; j < filas_por_proceso; j++)
         {
             MPI_Recv(&matriz_1[j][0], columnas, MPI_INT, 0, j, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
+        carga_proceso[3] = MPI_Wtime();
     }
+    carga_proceso[4] = MPI_Wtime();
 
+    if (rank == 0)
+    {
+        start_comm = MPI_Wtime();
+    }
+    carga_proceso[5] = MPI_Wtime();
     // Enviamos con broadcast las matriz 2 a todos los procesos
     MPI_Bcast(&matriz_2[0], columnas * filas2da, MPI_INT, 0, MPI_COMM_WORLD);
 
+    carga_proceso[6] = MPI_Wtime();
     // Resolvemos la sección correspondiente
     for (i = 0; i < filas_por_proceso; i++)
     {
@@ -145,21 +166,26 @@ int main(int argc, char *argv[])
         }
     }
 
+    carga_proceso[7] = MPI_Wtime();
     // Enviamos la porcion de la matriz 1 calculada al proceso 0
     if (rank != 0)
     {
+        carga_proceso[8] = MPI_Wtime();
         for (i = 0; i < filas_por_proceso; i++)
         {
             MPI_Send(&resultado[i][0], filas2da, MPI_INT, 0, i, MPI_COMM_WORLD);
         }
+        carga_proceso[9] = MPI_Wtime();
     }
     else
     {
+        carga_proceso[8] = MPI_Wtime();
         // El proceso 0 recibe las porciones de la matriz resultado calculadas por los demas procesos
         MPI_Request request[filas - filas_por_proceso];
 
         // Contador que guarda la posicion de la fila actual asignada
         int filas_asignadas = count_filas[0];
+        start_comm = MPI_Wtime();
         for (i = 1; i < size; i++)
         {
             // Recibe las filas con una llamada no bloqueante
@@ -167,45 +193,24 @@ int main(int argc, char *argv[])
             {
                 MPI_Irecv(&resultado[filas_asignadas + j][0], filas2da, MPI_INT, i, j, MPI_COMM_WORLD, &request[filas_asignadas + j - filas_por_proceso]);
             }
+            end_comm = MPI_Wtime();
+            tiempo_comm += end_comm - start_comm;
             filas_asignadas += count_filas[i];
         }
+        start_comm = MPI_Wtime();
 
         // Verificamos que todos los procesos hayan enviado su parte de la matriz resultado
         MPI_Waitall(filas - filas_por_proceso, request, MPI_STATUS_IGNORE);
 
-        // Calculamos el tiempo de ejecucion
-        gettimeofday(&end_mpi, NULL); // usamos MPI_Wtime?
-        tiempo = (end_mpi.tv_sec - start_mpi.tv_sec) + (end_mpi.tv_usec - start_mpi.tv_usec) / 1000000.0;
-        printf("Tiempo de ejecucion: %f ms\n", tiempo);
+        end_comm = MPI_Wtime();
+        tiempo_comm += end_comm - start_comm;
+        carga_proceso[9] = MPI_Wtime();
 
-        // Mostramos las matrices originales y el resultado
-        // printf("Matriz 1:\n");
-        // for (i = 0; i < filas; i++)
-        // {
-        //     for (j = 0; j < columnas; j++)
-        //     {
-        //         printf("%d ", matriz_1[i][j]);
-        //     }
-        //     printf("\n");
-        // }
-        // printf("Matriz 2:\n");
-        // for (i = 0; i < columnas; i++)
-        // {
-        //     for (j = 0; j < filas2da; j++)
-        //     {
-        //         printf("%d ", matriz_2[i][j]);
-        //     }
-        //     printf("\n");
-        // }
-        // printf("Matriz resultado:\n");
-        // for (i = 0; i < filas; i++)
-        // {
-        //     for (j = 0; j < filas2da; j++)
-        //     {
-        //         printf("%d ", resultado[i][j]);
-        //     }
-        //     printf("\n");
-        // }
+        end_calculo = MPI_Wtime();
+        tiempo_calc = end_calculo - start_calculo - tiempo_comm;
+        printf("Tiempo de ejecucion: %f s\n", tiempo_calc);
+        printf("Tiempo de comunicacion: %f s\n", tiempo_comm);
+        printf("Tiempo de creacion: %f s\n", tiempo_creation);
     }
 
     if (rank == 0)
@@ -213,10 +218,22 @@ int main(int argc, char *argv[])
         // guardamos un archivo con los tiempos de ejecucion y los tamannos de las matrices
         FILE *fp;
         fp = fopen("tiemposParalelosRefactor.txt", "a");
-        fprintf(fp, "%d %d %d %f\n", filas, columnas, filas2da, tiempo);
+        fprintf(fp, "[%d, %d, %d, %d, %d, %f, %f, %f]\n", size, filas, columnas, columnas, filas2da, tiempo_creation, tiempo_comm, tiempo_calc);
         fclose(fp);
     }
 
+    FILE *fpr;
+    char buffer[32]; // The filename buffer.
+    // Put "file" then k then ".txt" in to filename.
+    snprintf(buffer, sizeof(char) * 32, "tiemposNodo%iR.txt", rank);
+    fpr = fopen(buffer, "a");
+    fprintf(fpr, "[");
+    for (i = 0; i < 10; i++)
+    {
+        fprintf(fpr, "%f,", carga_proceso[i] - carga_proceso[0]);
+    }
+    fprintf(fpr, "]\n");
+    fclose(fpr);
     MPI_Finalize();
     return 0;
 }

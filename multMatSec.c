@@ -30,8 +30,9 @@ int main(int argc, char** argv) {
 
   int** resultado;
 
-  struct timeval start, end;
-  double tiempo;
+  struct timeval start, end, start_creation, end_creation;
+  double tiempo, tiempo_creation;
+  gettimeofday(&start_creation, NULL);
 
   // inicializa las matrices
   matriz_1 = (int **)malloc(filas*sizeof(int*));
@@ -57,6 +58,7 @@ int main(int argc, char** argv) {
       matriz_2[i][j] = (int)rand()/(int)(RAND_MAX/10.0);
     }
   }
+  gettimeofday(&end_creation, NULL);
   
   // imprimimos las matrices
   // printf("matriz 1:\n");
@@ -75,7 +77,14 @@ int main(int argc, char** argv) {
   }
   gettimeofday(&end, NULL);
   tiempo = (end.tv_sec - start.tv_sec)*1000 + (end.tv_usec - start.tv_usec)/1000;
+  tiempo_creation = (end_creation.tv_sec - start_creation.tv_sec)*1000 + (end_creation.tv_usec - start_creation.tv_usec)/1000;
   printf("Tiempo de ejecucion: %f ms\n", tiempo);
+  printf("Tiempo de creacion: %f ms\n", tiempo_creation);
+  // guardamos un archivo con los tiempos de ejecucion y los tamannos de las matrices
+  FILE *fp;
+  fp = fopen("tiemposSecuenciales.txt", "a");
+  fprintf(fp, "[%d, %d, %d, %d, %d, %f, %f]\n", 1, filas, columnas, columnas, filas2da, tiempo_creation, tiempo);
+  fclose(fp);
   // imprimimos el resultado
   // printf("resultado:\n");
   // printMatriz(&&resultado, filas, filas2da);
