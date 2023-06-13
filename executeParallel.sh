@@ -8,10 +8,10 @@ matriz_3=(400 400 500 500 1000 2000 4000 3000 4000)
 for j in {1..3}
 do
   # for loop to test with different number of processors
-  for k in {1..2}
+  for k in {0..1}
   do
     # for loop to iterate over the arrays
-    for i in {1..9}
+    for i in {0..8}
     do
       echo "Starting ${matriz_1[$i]} ${matriz_2[$i]} ${matriz_3[$i]}"
       # Execute task 1
@@ -23,7 +23,7 @@ do
       wait
     done
     # for loop to iterate over the arrays
-    for i in {1..9}
+    for i in {0..8}
     do
       echo "Starting ${matriz_1[$i]} ${matriz_2[$i]} ${matriz_3[$i]}"
       # Execute task 1
